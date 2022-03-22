@@ -83,22 +83,32 @@ class Wordle {
         return outString.toString();
     }
 
-    public static void main(String[] args) {
+    public static void gameLoop() {
         Scanner sc = new Scanner(System.in);
         boolean correct = false;
         int roundCount = 0;
         while (!correct && roundCount < 6) {
-            System.out.println("Enter a guess: ");
+            System.out.print("Enter a guess: ");
             String guess = sc.nextLine().toLowerCase();
             if (validGuess(guess)) {
-                System.out.println(guess);
-                System.out.println("\n" + checkGuess(guess));
+                System.out.println(checkGuess(guess));
                 correct = guess.equals(answer);
                 roundCount++;
             } else {
                 System.out.println("Invalid guess!");
             }
-            System.out.println("\n");
+            System.out.println();
         }
+
+        if (!correct) { System.out.println("Unlucky! The word was " + answer); }
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        do {
+            answer = chooseAnswer();
+            gameLoop();
+            System.out.print("Type 'again' to play again: ");
+        } while (sc.nextLine().toLowerCase().equals("again"));
     }
 }
