@@ -1,17 +1,14 @@
-package com.jacksanders.wordle;// import necessary packages
+package com.jacksanders.wordle;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
 class Wordle {
-    static String[] allowedGuesses;
+    static String[] allowedGuesses = readFile("guesslist.txt");
     static String[] answerList = readFile("answers.txt");
-    static String answer;
+    static String answer = chooseAnswer();
 
     public static int randomNum(int lower, int upper) {
         return lower + (int) Math.floor(Math.random() * (upper - lower));
@@ -22,17 +19,15 @@ class Wordle {
         int rightPointer = data.length - 1;
         int searchPoint = data.length >> 1; // Bit shift one to the right (div2)
         T found = data[searchPoint];
-        while (!found.equals(toFind) && rightPointer != leftPointer) {
+        while (!found.equals(toFind) && rightPointer - leftPointer > 1) {
             if (toFind.compareTo(found) > 0) {
-                leftPointer = searchPoint + 1;
+                leftPointer = searchPoint;
             } else {
-                rightPointer = searchPoint - 1;
+                rightPointer = searchPoint;
             }
 
             searchPoint = leftPointer + ((rightPointer - leftPointer) >> 1);
             found = data[searchPoint];
-
-            System.out.println(found);
         }
 
         if (!found.equals(toFind)) { return -1; }
@@ -60,13 +55,50 @@ class Wordle {
         return answerList[randomNum(0, answerList.length)];
     }
 
+    public static boolean validGuess(String guess) {
+        if (!guess.matches("[a-z]{5}")) { return false; }
+        return binarySearch(answerList, guess) != -1 || binarySearch(allowedGuesses, guess) != -1;
+    }
+
+    public static String checkGuess(String guess) {
+        StringBuilder outString = new StringBuilder();
+        boolean[] usedIndices = new boolean[5];
+        for (int i=0; i<5; i++) {
+            if (guess.charAt(i) == answer.charAt(i)) {
+                outString.append("G");
+                usedIndices[i] = true;
+            }
+            else if (answer.indexOf(guess.charAt(i)) != -1) {
+                for (int j=0; j<5; j++) {
+                    if (answer.charAt(j) == guess.charAt(i) && !usedIndices[j]) {
+                        if (answer.charAt(j) != guess.charAt(j)) { outString.append("Y"); }
+                        else { outString.append("-"); }
+                        break;
+                    }
+                }
+            }
+            else { outString.append("-"); }
+        }
+
+        return outString.toString();
+    }
+
     public static void main(String[] args) {
-        System.out.println(binarySearch(answerList, "aback"));
-        System.out.println("\n");
-        System.out.println(binarySearch(answerList, "zonal"));
-        System.out.println("\n");
-        System.out.println(binarySearch(answerList, "sling"));
-        System.out.println("\n");
-        System.out.println(binarySearch(answerList, "broth"));
+        Scanner sc = new Scanner(System.in);
+        boolean correct = false;
+        int roundCount = 0;
+        while (!correct && roundCount < 6) {
+            System.out.println("Enter a guess: ");
+            String guess = sc.nextLine().toLowerCase();
+            if (validGuess(guess)) {
+                System.out.println(guess);
+                System.out.println("\n" + checkGuess(guess));
+                correct = guess.equals(answer);
+                roundCount++;
+            } else {
+                System.out.println("Invalid guess!");
+            }
+            System.out.println("\n");
+        }
     }
 }
